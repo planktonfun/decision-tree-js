@@ -46,30 +46,13 @@ console.log(treeToHtml(decisionTree.root));
 function treeToHtml(tree) {
     // only leafs containing category
     if (tree.category) {
-        return  ['<ul>',
-                    '<li>',
-                        '<a href="#">',
-                            '<b>', tree.category, '</b>',
-                        '</a>',
-                    '</li>',
-                 '</ul>'].join('');
+        return  [' "', tree.category, '"'].join('');
     }
     
-    return  ['<ul>',
-                '<li>',
-                    '<a href="#">',
-                        '<b>', tree.attribute, ' ', tree.predicateName, ' ', tree.pivot, ' ?</b>',
-                    '</a>',
-                    '<ul>',
-                        '<li>',
-                            '<a href="#">yes</a>',
-                            treeToHtml(tree.match),
-                        '</li>',
-                        '<li>',
-                            '<a href="#">no</a>',
-                            treeToHtml(tree.notMatch),
-                        '</li>',
-                    '</ul>',
-                '</li>',
-             '</ul>'].join('');
+    return  ['\r\n"', tree.attribute, ' ', tree.predicateName, ' ', tree.pivot, ' ?" => [\r\n   ',
+                            ' yes => ',
+                            treeToHtml(tree.match), ",\r\n   " ,
+                            ' no => ',
+                            treeToHtml(tree.notMatch), '\r\n ]'].join('');
 }
+
