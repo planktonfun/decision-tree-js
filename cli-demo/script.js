@@ -48,11 +48,15 @@ function treeToHtml(tree) {
     if (tree.category) {
         return  [' "', tree.category, '"'].join('');
     }
-    
-    return  ['\r\n"', tree.attribute, ' ', tree.predicateName, ' ', tree.pivot, ' ?" => [\r\n   ',
-                            ' yes => ',
-                            treeToHtml(tree.match), ",\r\n   " ,
-                            ' no => ',
-                            treeToHtml(tree.notMatch), '\r\n ]'].join('');
+
+    var myBranch = {};
+    var branchName = ['"',tree.attribute,' ',tree.predicateName,' ',tree.pivot,' ?"'].join('');
+
+    myBranch[branchName] = {
+        'yes': treeToHtml(tree.match),
+        'no':  treeToHtml(tree.notMatch)
+    };
+
+    return myBranch;
 }
 
