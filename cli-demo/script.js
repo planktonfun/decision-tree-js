@@ -1,9 +1,10 @@
 var desobj = require('./decision-tree.js');
 var fs = require('fs');
 var dt = desobj.dt;
+var basepath = 'json_files/';
 
 // Training set
-var jsonContent = fs.readFileSync('json_files/config.json', 'utf8');
+var jsonContent = fs.readFileSync(basepath + 'config.json', 'utf8');
 var config = JSON.parse(jsonContent);
 
 // Building Decision Tree
@@ -14,7 +15,7 @@ var numberOfTrees = 3;
 var randomForest = new dt.RandomForest(config, numberOfTrees);
 
 // Testing Decision Tree and Random Forest
-var jsonContent = fs.readFileSync('json_files/input.json', 'utf8');
+var jsonContent = fs.readFileSync(basepath + 'input.json', 'utf8');
 var comic = JSON.parse(jsonContent);
 
 var decisionTreePrediction = decisionTree.predict(comic);
