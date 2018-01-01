@@ -106,46 +106,82 @@ var complete = 2;
 var sheet_columns;
 var sheet_rows;
 
-function listMajors(auth) {
+function getConfigValues(auth, spreadsheetId,spreadsheetTab,callback) {
   var sheets = google.sheets('v4');
-  var spreadsheetId = '1Hy3rmXSarcwD7E7N-bcoJzVx8yQ9CICtjtsV_rtekvk';
-  sheets.spreadsheets.values.get({
-    auth: auth,
-    spreadsheetId: spreadsheetId,
-    range: 'Sheet1!A1:F1'
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-    var rows = response.values;
-    if (rows.length == 0) {
-      console.log('No data found.');
-    } else {
-       complete--;
-       sheet_columns = rows[0];
-       start();
-    }
-  });
 
   sheets.spreadsheets.values.get({
     auth: auth,
     spreadsheetId: spreadsheetId,
-    range: 'Sheet1!A2:F'
+    range: spreadsheetTab + '!B1:B2'
   }, function(err, response) {
     if (err) {
       console.log('The API returned an error: ' + err);
       return;
     }
     var rows = response.values;
+
     if (rows.length == 0) {
       console.log('No data found.');
-    } else {
-       complete--;
-       sheet_rows = rows;
-       start();
     }
+
+    callback({
+      columns: response.values[0],
+      rows: response.values[1]
+    });
   });
+
+  return ;
+}
+
+function listMajors(auth) {
+  var sheets = google.sheets('v4');
+  var spreadsheetId = '1Hy3rmXSarcwD7E7N-bcoJzVx8yQ9CICtjtsV_rtekvk';
+  // var spreadsheetTab = 'MarioAStar';
+  // var spreadsheetTab = 'Iris';
+  var spreadsheetTab = 'Wine';
+  // var spreadsheetTab = 'xor';
+
+  getConfigValues(auth, spreadsheetId,spreadsheetTab, function(config){
+    console.log(config);
+    sheets.spreadsheets.values.get({
+      auth: auth,
+      spreadsheetId: spreadsheetId,
+      range: spreadsheetTab + '!' + config.columns
+    }, function(err, response) {
+      if (err) {
+        console.log('The API returned an error: ' + err);
+        return;
+      }
+      var rows = response.values;
+      if (rows.length == 0) {
+        console.log('No data found.');
+      } else {
+         complete--;
+         sheet_columns = rows[0];
+         start();
+      }
+    });
+
+    sheets.spreadsheets.values.get({
+      auth: auth,
+      spreadsheetId: spreadsheetId,
+      range: spreadsheetTab + '!' + config.rows
+    }, function(err, response) {
+      if (err) {
+        console.log('The API returned an error: ' + err);
+        return;
+      }
+      var rows = response.values;
+      if (rows.length == 0) {
+        console.log('No data found.');
+      } else {
+         complete--;
+         sheet_rows = rows;
+         start();
+      }
+    });
+  });
+
 }
 
 function isNumeric(num){
@@ -168,7 +204,7 @@ var start = function() {
       for (var e = 0; e < sheet_columns.length; e++) {
         var numeric = isNumeric(row[e]);
         if(numeric) {
-            obj[sheet_columns[e].trim()] = parseInt(row[e]);
+            obj[sheet_columns[e].trim()] = parseFloat(row[e]);
         } else {
             obj[sheet_columns[e].trim()] = row[e];
         }
@@ -188,7 +224,7 @@ var start = function() {
     var config = {
         trainingSet: data,
         categoryAttr: 'action',
-        ignoredAttributes: ['Time']
+        ignoredAttributes: []
     };
 
     fs.writeFile(basepath + "config.json", JSON.stringify(config), function(err) {
@@ -207,7 +243,7 @@ var start = function() {
     var randomForest = new dt.RandomForest(config, numberOfTrees);
 
     // Testing Decision Tree and Random Forest
-    var comic = {Name: 'Comic guy', hitpoints: 8, cost: 290};
+    var comic = data[0];
 
     fs.writeFile(basepath + "input.json", JSON.stringify(comic), function(err) {
         if(err) {
@@ -238,13 +274,28 @@ var start = function() {
         console.log("The file was saved!");
     });
 
-    fs.writeFile(basepath + "tree.html", '<head><link rel="stylesheet" href="../base.css"></head><body><div class="tree" id="displayTree">' + htmlCss(decisionTree.root), function(err) {
+    fs.writeFile(basepath + "tree.html", '<head><link rel="stylesheet" href="../base.css"></head><body><div class="weee" style="    width: 100%;    height: 100%;    overflow-x: scroll;    overflow-y: scroll;"><div class="tree" id="displayTree" style="    width: 9000px;    height: 9000px;"><div class="tree" id="displayTree">' + htmlCss(decisionTree.root) + '</div></div>', function(err) {
         if(err) {
             return console.log(err);
         }
 
         console.log("The file was saved!");
     });
+
+    // Display error rating
+    var errors = 0;
+
+    for (var i = data.length - 1; i >= 0; i--) {
+      var actionToPredict = data[i].action;
+      var sample = data[i];
+          sample.action = "";
+
+      if(decisionTree.predict(sample) != actionToPredict) {
+        errors++;
+      }
+    }
+
+    console.log('Error Rate:' + ((errors/data.length)*100) + '%');
 
     // Recursive (DFS) function for displaying inner structure of decision tree
     function treeToHtml(tree) {
