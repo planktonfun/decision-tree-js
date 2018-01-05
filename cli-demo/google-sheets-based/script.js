@@ -137,8 +137,10 @@ function listMajors(auth) {
   var sheets = google.sheets('v4');
   var spreadsheetId = '1Hy3rmXSarcwD7E7N-bcoJzVx8yQ9CICtjtsV_rtekvk';
   // var spreadsheetTab = 'MarioAStar';
+  // var spreadsheetTab = 'Lab';
   // var spreadsheetTab = 'Iris';
   var spreadsheetTab = 'Wine';
+  // var spreadsheetTab = 'Youtube';
   // var spreadsheetTab = 'xor';
 
   getConfigValues(auth, spreadsheetId,spreadsheetTab, function(config){

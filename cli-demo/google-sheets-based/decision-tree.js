@@ -175,10 +175,38 @@ var dt = (function () {
 
         return mostFrequentValue;
     }
-          
+
+    var predicateType = {
+        'string': ['==', 'contains', 'reversed', 'equal word count', 'greater word count'],
+        'number': ['>=', 'reversed'],
+        'boolean': ['!!']
+    };
+
+    var reverseString = function(modifyingString) {
+        var newstring = '';
+
+        for(var i = 0; i < modifyingString.length; i++) {
+            newstring = modifyingString[i] += newstring;
+        }
+
+        return newstring;
+    };
+
+    function isEven(n) {
+      return n == parseFloat(n)? !(n%2) : void 0;
+    }
+
     var predicates = {
-        '==': function (a, b) { return a == b },
-        '>=': function (a, b) { return a >= b }
+        'greater word count': function (a, b) { return a.split(" ").length >= b.split(" ").length },
+        'equal word count': function (a, b) { return a.split(" ").length == b.split(" ").length },
+        'reversed': function (a, b) { return reverseString(a) == b },
+        'contains': function (a, b) { return a.includes(b) },
+        '!!': function (a, b) { return a == !b },
+        '>=': function (a, b) { return a >= b },
+        '==': function (a, b) { return a == b }
+        // imaginary numbers
+        // root of
+        // vowels
     };
 
     /**
@@ -233,50 +261,50 @@ var dt = (function () {
                 // let the value of current attribute be the pivot
                 var pivot = item[attr];
 
-                // pick the predicate
-                // depending on the type of the attribute value
-                var predicateName;
-                if (typeof pivot == 'number') {
-                    predicateName = '>=';
-                } else {
-                    // there is no sense to compare non-numeric attributes
-                    // so we will check only equality of such attributes
-                    predicateName = '==';
-                }
+                // Go through each predicates
+                for(predicateName in predicates) {
+                    // pick the predicate
 
-                var attrPredPivot = attr + predicateName + pivot;
-                if (alreadyChecked[attrPredPivot]) {
-                    // skip such pairs of 'attribute-predicate-pivot',
-                    // which been already checked
-                    continue;
-                }
-                alreadyChecked[attrPredPivot] = true;
+                    var pivotType = typeof pivot;
+                    if(predicateType[pivotType].indexOf(predicateName) == -1) {
+                        continue;
+                    }
 
-                var predicate = predicates[predicateName];
-          
-                // splitting training set by given 'attribute-predicate-value'
-                var currSplit = split(trainingSet, attr, predicate, pivot);
+                    // depending on the type of the attribute value
+                    var attrPredPivot = attr + predicateName + pivot;
+                    if (alreadyChecked[attrPredPivot]) {
+                        // skip such pairs of 'attribute-predicate-pivot',
+                        // which been already checked
+                        continue;
+                    }
+                    alreadyChecked[attrPredPivot] = true;
 
-                // calculating entropy of subsets
-                var matchEntropy = entropy(currSplit.match, categoryAttr);
-                var notMatchEntropy = entropy(currSplit.notMatch, categoryAttr);
+                    var predicate = predicates[predicateName];
+              
+                    // splitting training set by given 'attribute-predicate-value'
+                    var currSplit = split(trainingSet, attr, predicate, pivot);
 
-                // calculating informational gain
-                var newEntropy = 0;
-                newEntropy += matchEntropy * currSplit.match.length;
-                newEntropy += notMatchEntropy * currSplit.notMatch.length;
-                newEntropy /= trainingSet.length;
-                var currGain = initialEntropy - newEntropy;
+                    // calculating entropy of subsets
+                    var matchEntropy = entropy(currSplit.match, categoryAttr);
+                    var notMatchEntropy = entropy(currSplit.notMatch, categoryAttr);
 
-                if (currGain > bestSplit.gain) {
-                    // remember pairs 'attribute-predicate-value'
-                    // which provides informational gain
-                    bestSplit = currSplit;
-                    bestSplit.predicateName = predicateName;
-                    bestSplit.predicate = predicate;
-                    bestSplit.attribute = attr;
-                    bestSplit.pivot = pivot;
-                    bestSplit.gain = currGain;
+                    // calculating informational gain
+                    var newEntropy = 0;
+                    newEntropy += matchEntropy * currSplit.match.length;
+                    newEntropy += notMatchEntropy * currSplit.notMatch.length;
+                    newEntropy /= trainingSet.length;
+                    var currGain = initialEntropy - newEntropy;
+
+                    if (currGain > bestSplit.gain) {
+                        // remember pairs 'attribute-predicate-value'
+                        // which provides informational gain
+                        bestSplit = currSplit;
+                        bestSplit.predicateName = predicateName;
+                        bestSplit.predicate = predicate;
+                        bestSplit.attribute = attr;
+                        bestSplit.pivot = pivot;
+                        bestSplit.gain = currGain;
+                    }
                 }
             }
         }
