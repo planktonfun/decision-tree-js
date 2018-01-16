@@ -178,12 +178,16 @@ var dt = (function () {
 
     var predicateType = {
         'string': ['==', 'contains', 'reversed', 'equal word count', 'greater word count'],
-        'number': ['>=', 'reversed'],
-        'boolean': ['!!']
+        'number': ['>=', '==', 'reversed'],
+        'boolean': ['!!', '==']
     };
 
     var reverseString = function(modifyingString) {
         var newstring = '';
+
+        if(modifyingString == undefined) {
+          return '';
+        }
 
         for(var i = 0; i < modifyingString.length; i++) {
             newstring = modifyingString[i] += newstring;
@@ -212,7 +216,18 @@ var dt = (function () {
     /**
      * Function for building decision tree
      */
+    var maxCount = 0;
+    var minPercent = 1;
     function buildDecisionTree(builder) {
+        if(builder.trainingSet.length >= maxCount) {
+            maxCount = builder.trainingSet.length;
+        }
+
+        if((builder.trainingSet.length/maxCount) <= minPercent) {
+            minPercent = builder.trainingSet.length/maxCount;
+        }
+
+        // console.log(Math.floor((100 - (minPercent*100))) + '%');
 
         var trainingSet = builder.trainingSet;
         var minItemsCount = builder.minItemsCount;

@@ -224,46 +224,76 @@ var start = function() {
         console.log("The file was saved!");
     });
 
-    // Configuration
-    var config = {
-        trainingSet: data,
-        categoryAttr: 'action',
-        ignoredAttributes: []
-    };
+    var minimumTrainingRows = 3;
+    var errorRate = 0;
+    var configThatWorked = 'none';
 
-    fs.writeFile(basepath + "config.json", JSON.stringify(config), function(err) {
-        if(err) {
-            return console.log(err);
-        }
+    while(errorRate == 0) {
+	    var tr = [];
 
-        console.log("The file was saved!");
-    });
+	    for (var i = 0; i < minimumTrainingRows; i++) {
+	    	tr.push(data[i]);
+	    }
 
-    // Building Decision Tree
-    var decisionTree = new dt.DecisionTree(config);
+	    // Configuration
+	    var config = {
+	        trainingSet: tr,
+	        categoryAttr: 'action',
+	        ignoredAttributes: []
+	    };
 
-    // Building Random Forest
-    var numberOfTrees = 3;
-    var randomForest = new dt.RandomForest(config, numberOfTrees);
+	    fs.writeFile(basepath + "config.json", JSON.stringify(config), function(err) {
+	        if(err) {
+	            return console.log(err);
+	        }
 
-    // Testing Decision Tree and Random Forest
-    var comic = data[0];
+	        console.log("The file was saved!");
+	    });
 
-    fs.writeFile(basepath + "input.json", JSON.stringify(comic), function(err) {
-        if(err) {
-            return console.log(err);
-        }
+	    // Building Decision Tree
+	    try {
+	    	var decisionTree = new dt.DecisionTree(config);
 
-        console.log("The file was saved!");
-    });
+	    	// Display error rating
+		    var errors = 0;
 
-    var decisionTreePrediction = decisionTree.predict(comic);
-    var randomForestPrediction = randomForest.predict(comic);
+		    for (var i = tr.length - 1; i >= 0; i--) {
+		    	if(tr[i].action == undefined) {
+		    		continue;
+		    	}
+		      	var actionToPredict = tr[i].action;
+		      	var sample = tr[i];
+
+		      if(decisionTree.predict(sample) != actionToPredict) {
+		        errors++;
+		      }
+		    }
+
+		    errorRate = ((errors/tr.length)*100);
+
+		    if(errorRate == 0) {
+		    	configThatWorked = config;
+		    }
+
+		} catch(e) {
+	    	console.log('an error occured');
+	    }
+
+	    console.log('Error Rate:' + errorRate + '%', minimumTrainingRows);
+
+	    if(minimumTrainingRows > data.length) {
+	    	errorRate = 100;
+	    }
+
+	    minimumTrainingRows++;
+    }
+
+    var decisionTree = new dt.DecisionTree(configThatWorked);
 
     // Displaying predictions
-    console.log(JSON.stringify(comic, null, 0));
-    console.log(JSON.stringify(decisionTreePrediction, null, 0));
-    console.log(JSON.stringify(randomForestPrediction, null, 0));
+    // console.log(JSON.stringify(comic, null, 0));
+    // console.log(JSON.stringify(decisionTreePrediction, null, 0));
+    // console.log(JSON.stringify(randomForestPrediction, null, 0));
 
     var tree = treeToHtml(decisionTree.root);
 
@@ -290,16 +320,20 @@ var start = function() {
     var errors = 0;
 
     for (var i = data.length - 1; i >= 0; i--) {
-      var actionToPredict = data[i].action;
-      var sample = data[i];
-          sample.action = "";
+    	if(data[i].action == undefined) {
+    		continue;
+    	}
+      	var actionToPredict = data[i].action;
+      	var sample = data[i];
 
       if(decisionTree.predict(sample) != actionToPredict) {
         errors++;
       }
     }
 
-    console.log('Error Rate:' + ((errors/data.length)*100) + '%');
+    errorRate = ((errors/data.length)*100);
+
+    console.log('Final Error Rate:' + errorRate + '%');
 
     // Recursive (DFS) function for displaying inner structure of decision tree
     function treeToHtml(tree) {

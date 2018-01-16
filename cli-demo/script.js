@@ -11,20 +11,20 @@ var config = JSON.parse(jsonContent);
 var decisionTree = new dt.DecisionTree(config);
 
 // Building Random Forest
-var numberOfTrees = 3;
-var randomForest = new dt.RandomForest(config, numberOfTrees);
+// var numberOfTrees = 3;
+// var randomForest = new dt.RandomForest(config, numberOfTrees);
 
-// Testing Decision Tree and Random Forest
-var jsonContent = fs.readFileSync(basepath + 'input.json', 'utf8');
-var comic = JSON.parse(jsonContent);
+// // Testing Decision Tree and Random Forest
+// var jsonContent = fs.readFileSync(basepath + 'input.json', 'utf8');
+// var comic = JSON.parse(jsonContent);
 
-var decisionTreePrediction = decisionTree.predict(comic);
-var randomForestPrediction = randomForest.predict(comic);
+// var decisionTreePrediction = decisionTree.predict(comic);
+// var randomForestPrediction = randomForest.predict(comic);
 
-// Displaying predictions
-console.log(JSON.stringify(comic, null, 0));
-console.log(JSON.stringify(decisionTreePrediction, null, 0));
-console.log(JSON.stringify(randomForestPrediction, null, 0));
+// // Displaying predictions
+// console.log(JSON.stringify(comic, null, 0));
+// console.log(JSON.stringify(decisionTreePrediction, null, 0));
+// console.log(JSON.stringify(randomForestPrediction, null, 0));
 
 // Displaying Decision Tree
 console.log(treeToHtml(decisionTree.root));
