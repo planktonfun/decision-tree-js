@@ -110,12 +110,34 @@ var tokenizeSentences = function(payload) {
       return sentence;
   }
 
+  this.getVowels = function(str) {
+    var m = str.match(/[aeiou]/gi);
+    return m === null ? 0 : m.length;
+  }
+
+  this.getConsonants = function(str) {
+    var m = str.match(/[^aeiou]/gi);
+    return m === null ? 0 : m.length;
+  }
+
+  this.getSpaces = function(str) {
+    var m = str.match(/[\s]/gi);
+    return m === null ? 0 : m.length;
+  }
+
   var dataHolder = [];
 
   for (var i = 0; i < payload.length; i++) {
       var summary = this.tokenization(payload[i]['Pattern']);
       var points = payload[i]['action'];
-      var currentRow = {'action':points};
+      
+      var currentRow = {
+        'num-of-spaces': this.getSpaces(payload[i]['Pattern']),
+        'num-of-words': summary.length,
+        'num-of-vowel': this.getVowels(payload[i]['Pattern']),
+        'num-of-consonants': this.getConsonants(payload[i]['Pattern']),
+        'action':points
+      };
 
       for (var e = 0; e < summary.length; e++) {
           if(currentRow[summary[e]] == undefined) {
@@ -124,6 +146,7 @@ var tokenizeSentences = function(payload) {
               currentRow[summary[e]]++;
           }
       }
+
       dataHolder.push(currentRow);
   }
 
@@ -167,7 +190,7 @@ function getConfigValues(auth, spreadsheetId,spreadsheetTab,callback) {
 
 function listMajors(auth) {
   var sheets = google.sheets('v4');
-  var spreadsheetId = '1Hy3rmXSarcwD7E7N-bcoJzVx8yQ9CICtjtsV_rtekvk';
+  var spreadsheetId = '1fFKVReyCA-6fiMh-zgfXUPloEFohkVV2qEbgQob6wZM';
   // var spreadsheetTab = 'MarioAStar';
   // var spreadsheetTab = 'Shopping';
   // var spreadsheetTab = 'Lab';
@@ -300,7 +323,8 @@ var start = function() {
 	    var config = {
 	        trainingSet: tr,
 	        categoryAttr: 'action',
-	        ignoredAttributes: []
+	        ignoredAttributes: [],
+          maxTreeDepth: 10
 	    };
 
 	    // Building Decision Tree
@@ -326,6 +350,7 @@ var start = function() {
 
         // Display error rating
         var errors = 0;
+        data = shuffle(data);
         var tokenized = data;
         for (var i = tokenized.length - 1; i >= 0; i--) {
           if(tokenized[i].action == undefined) {
