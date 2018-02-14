@@ -91,14 +91,14 @@ var getDataIndex = function(indecies) {
 
 var data = [
     {x: 0, y: 0, xor: 0},
-    {x: 0, y: 1, xor: 0},
-    {x: 1, y: 0, xor: 0},
-    {x: 1, y: 1, xor: 1}
+    {x: 0, y: 1, xor: 1},
+    {x: 1, y: 0, xor: 1},
+    {x: 1, y: 1, xor: 0}
 ];
 
 // Building Decision Tree
 var decisionTree = [];
-var combinationsK = k_combinations([0,1,2,3], 4);
+var combinationsK = k_combinations([0,1,2,3], 3);
 
 for (var i = combinationsK.length - 1; i >= 0; i--) {
     decisionTree.push(new dt.DecisionTree({
