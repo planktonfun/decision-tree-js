@@ -99,7 +99,7 @@ var data = [
 // Building Decision Tree
 var decisionTree = [];
 var combinationsK = k_combinations([0,1,2,3], 3);
-
+console.log(combinationsK);
 for (var i = combinationsK.length - 1; i >= 0; i--) {
     decisionTree.push(new dt.DecisionTree({
         trainingSet: getDataIndex(combinationsK[i]),
