@@ -1,5 +1,29 @@
 var desobj = require('./decision-tree.js');
 var dt = desobj.dt;
+var features = {};
+
+function findFeatures(tree) {
+    // only leafs containing category
+    if (tree.category) {
+        return  [' "', tree.category, '"'].join('');
+    }
+
+    var myBranch = {};
+    var branchName = ['"',tree.attribute,' ',tree.predicateName,' ',tree.pivot,' ?"'].join('');
+
+    if(features[tree.attribute] != undefined) {
+        features[tree.attribute]++;
+    } else {
+        features[tree.attribute] = 1;
+    }
+
+    myBranch[branchName] = {
+        'yes': findFeatures(tree.match),
+        'no':  findFeatures(tree.notMatch)
+    };
+
+    return myBranch;
+}
 
 function k_combinations(set, k) {
     var i, j, combs, head, tailcombs;
@@ -107,6 +131,13 @@ for (var i = combinationsK.length - 1; i >= 0; i--) {
         ignoredAttributes: []
     }));
 }
+
+// Find most important features
+for (var i = decisionTree.length - 1; i >= 0; i--) {
+    findFeatures(decisionTree[i].root);
+}
+
+console.log('Most Important features:',features);
 
 // Test Accuracy
 for (var e = data.length - 1; e >= 0; e--) {
