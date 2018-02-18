@@ -215,16 +215,16 @@ var data = [
     {reco: 'irrelevantColumns', x: 1, y: 1, xor: 0}
 ];
 
-// var fs = require('fs');
-// var jsonContent = fs.readFileSync('./normalized.json', 'utf8');
-// var data = JSON.parse(jsonContent);
+var fs = require('fs');
+var jsonContent = fs.readFileSync('./normalized.json', 'utf8');
+var data = JSON.parse(jsonContent);
 
 // Building Decision Tree
-var data = shuffle(data);
+// var data = shuffle(data);
 var trainingSet = data.slice(0, Math.round(data.length*0.75));
 var testingSet = data.slice(Math.round(data.length*0.75));
-var numberOfTrees = 3;
-var target = 'xor';
+var numberOfTrees = 50;
+var target = 'Type 1';
 var randomForest = new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,

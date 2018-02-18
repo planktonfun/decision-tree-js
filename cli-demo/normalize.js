@@ -78,12 +78,12 @@ csv()
 .on('done',(error)=>{
     // objectData = removeBlankColumns(objectData);
     // objectData = convertColumnToPercent(objectData, 'Total');
-    objectData = convertColumnToPercent(objectData, 'HP');
-    objectData = convertColumnToPercent(objectData, 'Sp-Def');
-    objectData = convertColumnToPercent(objectData, 'Sp-Atk');
-    objectData = convertColumnToPercent(objectData, 'Speed');
-    objectData = convertColumnToPercent(objectData, 'Attack');
-    objectData = convertColumnToPercent(objectData, 'Defense');
+    // objectData = convertColumnToPercent(objectData, 'HP');
+    // objectData = convertColumnToPercent(objectData, 'Sp-Def');
+    // objectData = convertColumnToPercent(objectData, 'Sp-Atk');
+    // objectData = convertColumnToPercent(objectData, 'Speed');
+    // objectData = convertColumnToPercent(objectData, 'Attack');
+    // objectData = convertColumnToPercent(objectData, 'Defense');
 
     // filtered = filterColumn(objectData, 'Generation', 1); // 3 6
     // filtered = filtered.concat(filterColumn(objectData, 'Generation', 2)); // 3 6
