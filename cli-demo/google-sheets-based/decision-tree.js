@@ -14,7 +14,7 @@ var dt = (function () {
             categoryAttr: builder.categoryAttr || 'category',
             minItemsCount: builder.minItemsCount || 1,
             entropyThrehold: builder.entropyThrehold || 0.01,
-            maxTreeDepth: builder.maxTreeDepth || 70
+            maxTreeDepth: builder.maxTreeDepth || 1000
         });
     }
           
@@ -36,7 +36,7 @@ var dt = (function () {
     }
           
     RandomForest.prototype.predict = function (item) {
-        return predictRandomForest(this.trees, item);
+        return Object.keys(predictRandomForest(this.trees, item))[0];
     }
     
     /**
@@ -201,10 +201,44 @@ var dt = (function () {
     }
 
     var predicates = {
-        'greater word count': function (a, b) { return a.split(" ").length >= b.split(" ").length },
-        'equal word count': function (a, b) { return a.split(" ").length == b.split(" ").length },
+        'greater word count': function (a, b) {
+
+          if('string' != typeof a) {
+            a = a + '';
+          }
+
+          if('string' != typeof b) {
+            b = b + '';
+          }
+
+          return a.split(" ").length >= b.split(" ").length;
+
+        },
+        'equal word count': function (a, b) {
+
+          if('string' != typeof a) {
+            a = a + '';
+          }
+
+          if('string' != typeof b) {
+            b = b + '';
+          }
+
+          return a.split(" ").length == b.split(" ").length;
+
+        },
         'reversed': function (a, b) { return reverseString(a) == b },
-        'contains': function (a, b) { return a.includes(b) },
+        'contains': function (a, b) { 
+          if('string' != typeof a) {
+            a = a + '';
+          }
+
+          if('string' != typeof b) {
+            b = b + '';
+          }
+
+          return a.includes(b)
+        },
         '!!': function (a, b) { return a == !b },
         '>=': function (a, b) { return a >= b },
         '==': function (a, b) { return a == b }
