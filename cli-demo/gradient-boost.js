@@ -115,6 +115,7 @@ var getDataIndex = function(indecies) {
 
 var data = [
     {x: 0, y: 0, xor: 0},
+    {x: 0, y: 0, xor: 0},
     {x: 0, y: 1, xor: 1},
     {x: 1, y: 0, xor: 1},
     {x: 1, y: 1, xor: 0}
@@ -122,7 +123,7 @@ var data = [
 
 // Building Decision Tree
 var decisionTree = [];
-var combinationsK = k_combinations([0,1,2,3], 3);
+var combinationsK = k_combinations([0,1,2,3,4], Math.floor(data.length * 0.75));
 console.log(combinationsK);
 for (var i = combinationsK.length - 1; i >= 0; i--) {
     decisionTree.push(new dt.DecisionTree({
@@ -176,3 +177,5 @@ for (var e = data.length - 1; e >= 0; e--) {
 // accuracy 75% combination 50%   k_combinations([0,1,2,3], 2)
 // accuracy 75% combination 25%   k_combinations([0,1,2,3], 1)
 // accuracy 100% combination 100% k_combinations([0,1,2,3], 4)
+// 
+// Another Trick is to add a duplicate column and set to 1 tree to fix xor
