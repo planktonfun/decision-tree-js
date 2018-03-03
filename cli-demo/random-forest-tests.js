@@ -1,3 +1,5 @@
+var BanditManager = require('./bandit-manager.js');
+var Bandit = require('./bandit.js');
 var desobj = require('./decision-tree.js');
 var dt = desobj.dt;
 
@@ -223,7 +225,7 @@ var data = JSON.parse(jsonContent);
 // var data = shuffle(data);
 var trainingSet = data.slice(0, Math.round(data.length*0.75));
 var testingSet = data.slice(Math.round(data.length*0.75));
-var numberOfTrees = 50;
+var numberOfTrees = 1;
 var target = 'Type 1';
 var randomForest = new dt.RandomForest({
         trainingSet: trainingSet,
@@ -231,6 +233,84 @@ var randomForest = new dt.RandomForest({
         ignoredAttributes: ["#", "Name"]
     }, numberOfTrees);
 
+
+function percentFunction(tries, objectParam) {
+
+    var accCount = 0;
+
+    for (var e = tries; e >= 0; e--) {
+        var vote = objectParam.randomForest.predict(objectParam.testingSet[e]);
+
+        if(objectParam.testingSet[e][target]==vote) {
+            accCount++;
+        }
+    }
+
+    return accCount;
+}
+
+var manager = new BanditManager({
+    'numberOfGroupTest': 20,
+    'testCountForEachStep': 100,
+    'sum': 100
+});
+
+manager.addArm(new Bandit(percentFunction, {
+    randomForest: new dt.RandomForest({
+        trainingSet: trainingSet,
+        categoryAttr: target,
+        ignoredAttributes: ["#", "Name"]
+    }, 1),
+    testingSet: trainingSet
+}));
+
+manager.addArm(new Bandit(percentFunction, {
+    randomForest: new dt.RandomForest({
+        trainingSet: trainingSet,
+        categoryAttr: target,
+        ignoredAttributes: ["#", "Name"]
+    }, 10),
+    testingSet: trainingSet
+}));
+
+manager.addArm(new Bandit(percentFunction, {
+    randomForest: new dt.RandomForest({
+        trainingSet: trainingSet,
+        categoryAttr: target,
+        ignoredAttributes: ["#", "Name"]
+    }, 20),
+    testingSet: trainingSet
+}));
+
+manager.addArm(new Bandit(percentFunction, {
+    randomForest: new dt.RandomForest({
+        trainingSet: trainingSet,
+        categoryAttr: target,
+        ignoredAttributes: ["#", "Name"]
+    }, 30),
+    testingSet: trainingSet
+}));
+
+manager.addArm(new Bandit(percentFunction, {
+    randomForest: new dt.RandomForest({
+        trainingSet: trainingSet,
+        categoryAttr: target,
+        ignoredAttributes: ["#", "Name"]
+    }, 40),
+    testingSet: trainingSet
+}));
+
+manager.addArm(new Bandit(percentFunction, {
+    randomForest: new dt.RandomForest({
+        trainingSet: trainingSet,
+        categoryAttr: target,
+        ignoredAttributes: ["#", "Name"]
+    }, 50),
+    testingSet: trainingSet
+}));
+
+
+manager.execute();
 
 for (var i = randomForest.trees.length - 1; i >= 0; i--) {
     findFeatures(randomForest.trees[i].root);
@@ -282,6 +362,7 @@ console.log('- Cluster Data By generation First?');
 console.log('- Make every feature a number/percent?');
 console.log('- Determine why total can\'t be classified when its just the summation of all the stats?');
 console.log('Findings:');
+console.log('- Use Bayesian optimization(multi-arm bandit) to get best hyperparameter works');
 console.log('- more tree depth = slower train time = higher accuracy');
 console.log('- more trees = faster train time = less tree depth');
 console.log('- column numbers < column percent');
