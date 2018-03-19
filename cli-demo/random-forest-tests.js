@@ -3,6 +3,28 @@ var Bandit = require('./bandit.js');
 var desobj = require('./decision-tree.js');
 var dt = desobj.dt;
 
+var measureAccuracy = function(name, decisionTreePayload, data, display) {
+    var score = 0;
+    var i =0;
+    for (var i = 0; i < data.length; i++) {
+
+        if(data[i][target].toString() == decisionTreePayload.predict(data[i])) {
+            score++;
+        }
+    }
+
+    if(display==undefined) {
+        console.log(score/data.length, name);
+    }
+
+
+    return score/data.length;
+}
+
+var measureSize = function(name, decisionTreePayload) {
+    console.log(JSON.stringify(decisionTreePayload).length, name);
+}
+
 var features = {};
 
 function findFeatures(tree) {
@@ -58,9 +80,9 @@ function findEasyFeatures(data) {
             if(featureColumns[key][data[i][key]] == undefined) {
                 featureColumns[key][data[i][key]] = 0;
                 columnCounts[key]++;
-            } else {
-                featureColumns[key][data[i][key]]++;
             }
+                featureColumns[key][data[i][key]]++;
+            
         }
     }
 
@@ -70,7 +92,9 @@ function findEasyFeatures(data) {
         }
 
         for (var i in featureColumns[key]) {
-            giniIndex[key] = giniIndex[key] * (featureColumns[key][i]/data.length);
+            var computed = (featureColumns[key][i]/data.length);
+        computed*=computed;
+        giniIndex[key]-=computed;
         }
     }
 
@@ -211,28 +235,47 @@ var getDataIndex = function(indecies) {
 };
 
 var data = [
-    {reco: 'irrelevantColumns', x: 0, y: 0, xor: 0},
-    {reco: 'irrelevantColumns', x: 0, y: 1, xor: 1},
-    {reco: 'irrelevantColumns', x: 1, y: 0, xor: 1},
-    {reco: 'irrelevantColumns', x: 1, y: 1, xor: 0}
+    {reco: 'irrelevantColumns', x: 0, y: 0, xor: 0, diff: 0, sum: 0, product: 0},
+    {reco: 'irrelevantColumns', x: 0, y: 1, xor: 1, diff: -1, sum: 1, product: 0},
+    {reco: 'irrelevantColumns', x: 1, y: 0, xor: 1, diff: 1, sum: 1, product: 0},
+    {reco: 'irrelevantColumns', x: 1, y: 1, xor: 0, diff: 0, sum: 2, product: 1}
 ];
 
 var fs = require('fs');
 var jsonContent = fs.readFileSync('./normalized.json', 'utf8');
 var data = JSON.parse(jsonContent);
 
+
+var addMeasurements = function(col1, col2) {
+    // Add quotient, product and sum
+    for (var i = 0; i < data.length; i++) {
+        var x = data[i][col1];
+        var y = data[i][col2];
+
+        data[i]['product-' + col1 + '-' + col2] = x*y;
+        data[i]['sum-' + col1 + '-' + col2] = x+y;
+        data[i]['difference-' + col1 + '-' + col2] = x-y;
+    }
+}
+
+addMeasurements('HP', 'Attack');
+addMeasurements('HP', 'Defense');
+addMeasurements('HP', 'Sp-Atk');
+addMeasurements('HP', 'Sp-Def');
+addMeasurements('HP', 'Speed');
+
 // Building Decision Tree
 // var data = shuffle(data);
 var trainingSet = data.slice(0, Math.round(data.length*0.75));
 var testingSet = data.slice(Math.round(data.length*0.75));
-var numberOfTrees = 1;
+var numberOfTrees = Math.floor(data.length*0.05);
 var target = 'Type 1';
 var randomForest = new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,
-        ignoredAttributes: ["#", "Name"]
+        ignoredAttributes: ["#", "Name"],
+        maxTreeDepth: 200
     }, numberOfTrees);
-
 
 function percentFunction(tries, objectParam) {
 
@@ -259,7 +302,8 @@ manager.addArm(new Bandit(percentFunction, {
     randomForest: new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,
-        ignoredAttributes: ["#", "Name"]
+        ignoredAttributes: ["#", "Name"],
+        maxTreeDepth: 200
     }, 1),
     testingSet: trainingSet
 }));
@@ -268,7 +312,8 @@ manager.addArm(new Bandit(percentFunction, {
     randomForest: new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,
-        ignoredAttributes: ["#", "Name"]
+        ignoredAttributes: ["#", "Name"],
+        maxTreeDepth: 200
     }, 10),
     testingSet: trainingSet
 }));
@@ -277,7 +322,8 @@ manager.addArm(new Bandit(percentFunction, {
     randomForest: new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,
-        ignoredAttributes: ["#", "Name"]
+        ignoredAttributes: ["#", "Name"],
+        maxTreeDepth: 200
     }, 20),
     testingSet: trainingSet
 }));
@@ -286,7 +332,8 @@ manager.addArm(new Bandit(percentFunction, {
     randomForest: new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,
-        ignoredAttributes: ["#", "Name"]
+        ignoredAttributes: ["#", "Name"],
+        maxTreeDepth: 200
     }, 30),
     testingSet: trainingSet
 }));
@@ -295,7 +342,8 @@ manager.addArm(new Bandit(percentFunction, {
     randomForest: new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,
-        ignoredAttributes: ["#", "Name"]
+        ignoredAttributes: ["#", "Name"],
+        maxTreeDepth: 200
     }, 40),
     testingSet: trainingSet
 }));
@@ -304,59 +352,58 @@ manager.addArm(new Bandit(percentFunction, {
     randomForest: new dt.RandomForest({
         trainingSet: trainingSet,
         categoryAttr: target,
-        ignoredAttributes: ["#", "Name"]
+        ignoredAttributes: ["#", "Name"],
+        maxTreeDepth: 200
     }, 50),
     testingSet: trainingSet
 }));
 
-
-manager.execute();
+// manager.execute();
 
 for (var i = randomForest.trees.length - 1; i >= 0; i--) {
     findFeatures(randomForest.trees[i].root);
 }
 sortFeatures();
 
-console.log('Most Easily Classified Features:');
+console.log('Easily classiable class if there where the target gini (low number = better):');
 var easyFeatures = findEasyFeatures(data);
-console.log(easyFeatures);
+console.log(easyFeatures[1]);
 
-console.log('Most Important features to classify (' + target + '):');
+console.log('Easily classiable class if there where the target uniqueness (low number = better):');
+console.log(easyFeatures[0]);
+
+console.log('Most Important columns to classify the target :' + target);
 console.log(features);
 
 console.log('Test Accuracy:');
-var accCount = 0;
 
-for (var e = testingSet.length - 1; e >= 0; e--) {
-    var vote = randomForest.predict(testingSet[e]);
+measureAccuracy('Using Test Samples:', randomForest, testingSet);
+measureAccuracy('Using Whole set:', randomForest, data);
+measureSize('randomForest Size:', randomForest);
 
-    // console.log(testingSet[e][target], vote);
-    if(testingSet[e][target]==vote) {
-        accCount++;
+
+console.log('Most Percise tree: ');
+var rf = randomForest;
+var mostPercise = 0;
+var index = 0;
+
+for (var i = rf.trees.length - 1; i >= 0; i--) {
+
+    var measurement = measureAccuracy('randomForest', rf.trees[i], data, false);
+
+    if(measurement > mostPercise) {
+        mostPercise = measurement;
+        index = i;
     }
-
-    // console.log(accCount,(testingSet.length-e),accCount/(testingSet.length-e)*100+'%');
-
 }
 
-console.log(accCount,testingSet.length,accCount/testingSet.length*100+'%');
+measureSize('randomForest Size:', rf.trees[index]);
+measureAccuracy('randomForest', rf.trees[index], data);
 
-
-var accCount = 0;
-
-for (var e = data.length - 1; e >= 0; e--) {
-    var vote = randomForest.predict(data[e]);
-
-    // console.log(data[e][target], vote);
-    if(data[e][target]==vote) {
-        accCount++;
-    }
-
-}
-
-console.log(accCount,data.length,accCount/data.length*100+'%');
 
 console.log('Investigations:');
+console.log('- Transform features then discard low gini impurities');
+console.log('- Determine if genetic algorithm with bayesian optimization will workout');
 console.log('- Determine Which features to remove/add to increase accuracy: (decision trees or random forest)');
 console.log('- Cluster Data By generation First?');
 console.log('- Make every feature a number/percent?');
