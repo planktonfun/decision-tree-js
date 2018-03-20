@@ -258,11 +258,57 @@ var addMeasurements = function(col1, col2) {
     }
 }
 
-addMeasurements('HP', 'Attack');
-addMeasurements('HP', 'Defense');
-addMeasurements('HP', 'Sp-Atk');
-addMeasurements('HP', 'Sp-Def');
-addMeasurements('HP', 'Speed');
+function k_combinations(set, k) {
+    var i, j, combs, head, tailcombs;
+
+    // There is no way to take e.g. sets of 5 elements from
+    // a set of 4.
+    if (k > set.length || k <= 0) {
+        return [];
+    }
+
+    // K-sized set has only one K-sized subset.
+    if (k == set.length) {
+        return [set];
+    }
+
+    // There is N 1-sized subsets in a N-sized set.
+    if (k == 1) {
+        combs = [];
+        for (i = 0; i < set.length; i++) {
+            combs.push([set[i]]);
+        }
+        return combs;
+    }
+
+    combs = [];
+    for (i = 0; i < set.length - k + 1; i++) {
+        // head is a list that includes only our current element.
+        head = set.slice(i, i + 1);
+        // We take smaller combinations from the subsequent elements
+        tailcombs = k_combinations(set.slice(i + 1), k - 1);
+        // For each (k-1)-combination we join it with the current
+        // and store it to the set of k-combinations.
+        for (j = 0; j < tailcombs.length; j++) {
+            combs.push(head.concat(tailcombs[j]));
+        }
+    }
+    return combs;
+}
+
+
+
+// add combination of all please
+var combination = k_combinations([
+    'HP', 'Attack', 'Defense', 'Sp-Atk', 'Sp-Def', 'Speed'
+], 2);
+
+for (var i = combination.length - 1; i >= 0; i--) {
+    var x = combination[i][0];
+    var y = combination[i][1];
+
+    addMeasurements(x,y);
+}
 
 // Building Decision Tree
 // var data = shuffle(data);
