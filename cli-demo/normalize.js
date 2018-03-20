@@ -18,20 +18,20 @@ var removeBlankColumns = function(objectCollection) {
 
 // Normalize a column
 var convertColumnToPercent = function(objectCollection, columnName) {
-    var max = 0;
+    var max = 1000;
+
+    // for (var i = objectCollection.length - 1; i >= 0; i--) {
+    //     var value = objectCollection[i][columnName];
+
+    //     if(value > max) {
+    //         max = value;
+    //     }
+    // }
 
     for (var i = objectCollection.length - 1; i >= 0; i--) {
         var value = objectCollection[i][columnName];
 
-        if(value > max) {
-            max = value;
-        }
-    }
-
-    for (var i = objectCollection.length - 1; i >= 0; i--) {
-        var value = objectCollection[i][columnName];
-
-        objectCollection[i][columnName] = value/max;
+        objectCollection[i][columnName] = Math.floor(value/max*100)/100;
 
     }
 
@@ -76,23 +76,23 @@ csv()
     objectData.push(jsonObj);
 })
 .on('done',(error)=>{
-    // objectData = removeBlankColumns(objectData);
+    objectData = removeBlankColumns(objectData);
     // objectData = convertColumnToPercent(objectData, 'Total');
-    // objectData = convertColumnToPercent(objectData, 'HP');
-    // objectData = convertColumnToPercent(objectData, 'Sp-Def');
-    // objectData = convertColumnToPercent(objectData, 'Sp-Atk');
-    // objectData = convertColumnToPercent(objectData, 'Speed');
-    // objectData = convertColumnToPercent(objectData, 'Attack');
-    // objectData = convertColumnToPercent(objectData, 'Defense');
+    objectData = convertColumnToPercent(objectData, 'HP');
+    objectData = convertColumnToPercent(objectData, 'Sp-Def');
+    objectData = convertColumnToPercent(objectData, 'Sp-Atk');
+    objectData = convertColumnToPercent(objectData, 'Speed');
+    objectData = convertColumnToPercent(objectData, 'Attack');
+    objectData = convertColumnToPercent(objectData, 'Defense');
 
-    // filtered = filterColumn(objectData, 'Generation', 1); // 3 6
-    // filtered = filtered.concat(filterColumn(objectData, 'Generation', 2)); // 3 6
-    // filtered = filtered.concat(filterColumn(objectData, 'Generation', 4)); // 3 6
+    filtered = filterColumn(objectData, 'Generation', 1); // 3 6
+    filtered = filtered.concat(filterColumn(objectData, 'Generation', 2)); // 3 6
+    filtered = filtered.concat(filterColumn(objectData, 'Generation', 4)); // 3 6
     // filtered = filtered.concat(filterColumn(objectData, 'Generation', 5)); // 3 6
     // filtered = filtered.concat(filterColumn(objectData, 'Generation', 3)); // 3 6
-    // filtered = filtered.concat(filterColumn(objectData, 'Generation', 6)); // 3 6
+    filtered = filtered.concat(filterColumn(objectData, 'Generation', 6)); // 3 6
 
-    // objectData = filtered;
+    objectData = filtered;
 
     fs.writeFile('./normalized.json', JSON.stringify(objectData), function(err) {
         if(err) {
