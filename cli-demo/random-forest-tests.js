@@ -17,8 +17,27 @@ var measureAccuracy = function(name, decisionTreePayload, data, display) {
         console.log(score/data.length, name);
     }
 
-
     return score/data.length;
+}
+
+var trackAccuracy = function(name, decisionTreePayload, data) {
+
+    console.log(name);
+
+    var score = 0;
+    var i =0;
+    var scene = 0;
+    for (var i = 0; i < data.length; i++) {
+
+        if(data[i][target].toString() == decisionTreePayload.predict(data[i])) {
+            score++;
+        } else {
+            console.log('scene '+scene+' : ' + score);
+            score = 0;
+            scene++;
+        }
+
+    }
 }
 
 var measureSize = function(name, decisionTreePayload) {
@@ -314,7 +333,7 @@ for (var i = combination.length - 1; i >= 0; i--) {
 // var data = shuffle(data);
 var trainingSet = data.slice(0, Math.round(data.length*0.75));
 var testingSet = data.slice(Math.round(data.length*0.75));
-var numberOfTrees = 1; //Math.floor(data.length*0.05);
+var numberOfTrees = 2; //Math.floor(data.length*0.05);
 var target = 'Type 1';
 var randomForest = new dt.RandomForest({
     trainingSet: data,
@@ -406,11 +425,6 @@ manager.addArm(new Bandit(percentFunction, {
 
 manager.execute();
 
-for (var i = randomForest.trees.length - 1; i >= 0; i--) {
-    findFeatures(randomForest.trees[i].root);
-}
-sortFeatures();
-
 console.log('Easily classiable class if there where the target gini (low number = better):');
 var easyFeatures = findEasyFeatures(data);
 console.log(easyFeatures[1]);
@@ -418,15 +432,11 @@ console.log(easyFeatures[1]);
 console.log('Easily classiable class if there where the target uniqueness (low number = better):');
 console.log(easyFeatures[0]);
 
-console.log('Most Important columns to classify the target :' + target);
-console.log(features);
-
 console.log('Test Accuracy:');
 
 measureAccuracy('Using Test Samples:', randomForest, testingSet);
 measureAccuracy('Using Whole set:', randomForest, data);
 measureSize('randomForest Size:', randomForest);
-
 
 console.log('Most Percise tree: ');
 var rf = randomForest;
@@ -446,6 +456,13 @@ for (var i = rf.trees.length - 1; i >= 0; i--) {
 measureSize('randomForest Size:', rf.trees[index]);
 measureAccuracy('randomForest', rf.trees[index], data);
 
+findFeatures(rf.trees[index].root);
+sortFeatures();
+
+console.log('Most Important columns to classify the target :' + target);
+console.log(features);
+
+trackAccuracy('Adding Scenarios', rf.trees[index], data);
 
 console.log('Investigations:');
 console.log('- Determine if genetic algorithm with bayesian optimization will workout');
