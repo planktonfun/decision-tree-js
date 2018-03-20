@@ -314,10 +314,10 @@ for (var i = combination.length - 1; i >= 0; i--) {
 // var data = shuffle(data);
 var trainingSet = data.slice(0, Math.round(data.length*0.75));
 var testingSet = data.slice(Math.round(data.length*0.75));
-var numberOfTrees = Math.floor(data.length*0.05);
+var numberOfTrees = 1; //Math.floor(data.length*0.05);
 var target = 'Type 1';
 var randomForest = new dt.RandomForest({
-        trainingSet: trainingSet,
+    trainingSet: data,
         categoryAttr: target,
         ignoredAttributes: ["#", "Name"],
         maxTreeDepth: 200
@@ -404,7 +404,7 @@ manager.addArm(new Bandit(percentFunction, {
     testingSet: trainingSet
 }));
 
-// manager.execute();
+manager.execute();
 
 for (var i = randomForest.trees.length - 1; i >= 0; i--) {
     findFeatures(randomForest.trees[i].root);
@@ -448,15 +448,55 @@ measureAccuracy('randomForest', rf.trees[index], data);
 
 
 console.log('Investigations:');
-console.log('- Transform features then discard low gini impurities');
 console.log('- Determine if genetic algorithm with bayesian optimization will workout');
 console.log('- Determine Which features to remove/add to increase accuracy: (decision trees or random forest)');
 console.log('- Cluster Data By generation First?');
 console.log('- Make every feature a number/percent?');
 console.log('- Determine why total can\'t be classified when its just the summation of all the stats?');
 console.log('Findings:');
+console.log('- Transform features then discard low gini impurities >< WRONG! randomForest size should be observed, the tree should be the same size no matter how many data');
 console.log('- Use Bayesian optimization(multi-arm bandit) to get best hyperparameter works');
 console.log('- more tree depth = slower train time = higher accuracy');
 console.log('- more trees = faster train time = less tree depth');
 console.log('- column numbers < column percent');
 console.log('- lesser column uniqueness = higher accuracy');
+
+// Recursive (DFS) function for displaying inner structure of decision tree
+function htmlCss(tree) {
+    // only leafs containing category
+    if (tree.category) {
+        return  ['<ul>',
+                    '<li>',
+                        '<a href="#">',
+                            '<b>', tree.category, '</b>',
+                        '</a>',
+                    '</li>',
+                 '</ul>'].join('');
+    }
+
+    return  ['<ul>',
+                '<li>',
+                    '<a href="#">',
+                        '<b>', tree.attribute, ' ', tree.predicateName, ' ', tree.pivot, ' ?</b>',
+                    '</a>',
+                    '<ul>',
+                        '<li>',
+                            '<a href="#">yes', '(', tree.matchedCount, ')', '</a>',
+                            htmlCss(tree.match),
+                        '</li>',
+                        '<li>',
+                            '<a href="#">no', '(', tree.notMatchedCount, ')', '</a>',
+                            htmlCss(tree.notMatch),
+                        '</li>',
+                    '</ul>',
+                '</li>',
+             '</ul>'].join('');
+}
+
+fs.writeFile("./json_files/tree.html", '<head><link rel="stylesheet" href="../base.css"></head><body><div class="weee" style="    width: 100%;    height: 100%;    overflow-x: scroll;    overflow-y: scroll;"><div class="tree" id="displayTree" style="    width: 9000px;    height: 9000px;"><div class="tree" id="displayTree">' + htmlCss(rf.trees[index].root) + '</div></div>', function(err) {
+    if(err) {
+        return console.log(err);
+    }
+
+    console.log("The file was saved!");
+});
