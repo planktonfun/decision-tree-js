@@ -20,6 +20,21 @@ var measureAccuracy = function(name, decisionTreePayload, data, display) {
     return score/data.length;
 }
 
+var measureAccuracywithTarget = function(name, decisionTreePayload, data, toward) {
+    var score = 0;
+    var i =0;
+    for (var i = 0; i < data.length; i++) {
+
+        if(data[i][toward].toString() == decisionTreePayload.predict(data[i])) {
+            score++;
+        }
+    }
+
+    console.log(score/data.length, name);
+
+    return score/data.length;
+}
+
 var trackAccuracy = function(name, decisionTreePayload, data) {
 
     console.log(name);
@@ -56,6 +71,7 @@ var trackAccuracy = function(name, decisionTreePayload, data) {
                 predictors[scene].trainingData[b][target].toString()
                 == predictors[scene].tree.predict(predictors[scene].trainingData[b])
             ) {
+                data[i]['scene'] = scene;
                 score++;
             }
         }
@@ -67,6 +83,22 @@ var trackAccuracy = function(name, decisionTreePayload, data) {
     }
 
     console.log('scene '+scene+' : ' + score);
+
+    return {
+        sceneTree: new dt.RandomForest({
+            trainingSet: data,
+            categoryAttr: "scene",
+            ignoredAttributes: ["#", "Name", target],
+            maxTreeDepth: 200
+        }, 1),
+        wholeTree: new dt.RandomForest({
+            trainingSet: data,
+            categoryAttr: target,
+            ignoredAttributes: ["#", "Name"],
+            maxTreeDepth: 200
+        }, 1)
+    };
+
 }
 
 var measureSize = function(name, decisionTreePayload) {
@@ -362,7 +394,7 @@ for (var i = combination.length - 1; i >= 0; i--) {
 // var data = shuffle(data);
 var trainingSet = data.slice(0, Math.round(data.length*0.75));
 var testingSet = data.slice(Math.round(data.length*0.75));
-var numberOfTrees = 2; //Math.floor(data.length*0.05);
+var numberOfTrees = 1; //Math.floor(data.length*0.05);
 var target = 'Type 1';
 var randomForest = new dt.RandomForest({
     trainingSet: data,
@@ -491,15 +523,37 @@ sortFeatures();
 console.log('Most Important columns to classify the target :' + target);
 console.log(features);
 
-trackAccuracy('Adding Scenarios', rf.trees[index], data);
+var sceneTreeSamples = trackAccuracy('Adding Scenarios', rf.trees[index], data);
+measureAccuracywithTarget('sceneTree', sceneTreeSamples.sceneTree, data, 'scene');
+measureSize('sceneTree Size:', sceneTreeSamples.sceneTree.trees[0]);
+measureAccuracy('wholeTree', sceneTreeSamples.wholeTree, data);
+measureSize('wholeTree Size:', sceneTreeSamples.wholeTree.trees[0]);
+
+fs.writeFile("./json_files/scene-tree.html", '<head><link rel="stylesheet" href="../base.css"></head><body><div class="weee" style="    width: 100%;    height: 100%;    overflow-x: scroll;    overflow-y: scroll;"><div class="tree" id="displayTree" style="    width: 9000px;    height: 9000px;"><div class="tree" id="displayTree">' + htmlCss(sceneTreeSamples.sceneTree.trees[0].root) + '</div></div>', function(err) {
+    if(err) {
+        return console.log(err);
+    }
+
+    console.log("The file was saved!");
+});
+
+fs.writeFile("./json_files/whole-tree.html", '<head><link rel="stylesheet" href="../base.css"></head><body><div class="weee" style="    width: 100%;    height: 100%;    overflow-x: scroll;    overflow-y: scroll;"><div class="tree" id="displayTree" style="    width: 9000px;    height: 9000px;"><div class="tree" id="displayTree">' + htmlCss(sceneTreeSamples.wholeTree.trees[0].root) + '</div></div>', function(err) {
+    if(err) {
+        return console.log(err);
+    }
+
+    console.log("The file was saved!");
+});
 
 console.log('Investigations:');
+console.log('- Determine if crossvalidation by predicting scenes then predicting outcome feature to improve size of tree and accuracy');
 console.log('- Determine if genetic algorithm with bayesian optimization will workout');
 console.log('- Determine Which features to remove/add to increase accuracy: (decision trees or random forest)');
 console.log('- Cluster Data By generation First?');
 console.log('- Make every feature a number/percent?');
 console.log('- Determine why total can\'t be classified when its just the summation of all the stats?');
 console.log('Findings:');
+console.log('- Determine if adding scenes feature to improve size of tree and accuracy - it works!');
 console.log('- Transform features then discard low gini impurities >< WRONG! randomForest size should be observed, the tree should be the same size no matter how many data');
 console.log('- Use Bayesian optimization(multi-arm bandit) to get best hyperparameter works');
 console.log('- more tree depth = slower train time = higher accuracy');

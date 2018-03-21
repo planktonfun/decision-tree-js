@@ -14,7 +14,7 @@ var dt = (function () {
             categoryAttr: builder.categoryAttr || 'category',
             minItemsCount: builder.minItemsCount || 1,
             entropyThrehold: builder.entropyThrehold || 0.01,
-            maxTreeDepth: builder.maxTreeDepth || 70
+            maxTreeDepth: builder.maxTreeDepth || 200
         });
     }
           
@@ -36,7 +36,18 @@ var dt = (function () {
     }
           
     RandomForest.prototype.predict = function (item) {
-        return predictRandomForest(this.trees, item);
+        var pizza = predictRandomForest(this.trees, item);
+
+        var sortable = [];
+        for (var key in pizza) {
+            sortable.push([key, pizza[key]]);
+        }
+
+        sortable.sort(function(a, b) {
+            return b[1] - a[1];
+        });
+
+        return sortable[0][0];
     }
     
     /**
@@ -179,7 +190,8 @@ var dt = (function () {
     var predicateType = {
         'string': ['==', 'contains', 'reversed', 'equal word count', 'greater word count'],
         'number': ['>=', '==', 'reversed'],
-        'boolean': ['!!', '==']
+        'boolean': ['!!', '=='],
+        'object': ['==']
     };
 
     var reverseString = function(modifyingString) {
@@ -227,7 +239,7 @@ var dt = (function () {
             minPercent = builder.trainingSet.length/maxCount;
         }
 
-        console.log(Math.floor((100 - (minPercent*100))) + '%');
+        // console.log(Math.floor((100 - (minPercent*100))) + '%');
 
         var trainingSet = builder.trainingSet;
         var minItemsCount = builder.minItemsCount;
