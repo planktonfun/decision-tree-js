@@ -24,20 +24,49 @@ var trackAccuracy = function(name, decisionTreePayload, data) {
 
     console.log(name);
 
-    var score = 0;
+    var predictors = {};
+
     var i =0;
     var scene = 0;
-    for (var i = 0; i < data.length; i++) {
+    var trainingSet = [];
 
-        if(data[i][target].toString() == decisionTreePayload.predict(data[i])) {
-            score++;
-        } else {
-            console.log('scene '+scene+' : ' + score);
-            score = 0;
-            scene++;
+    for (var i = 0; i < data.length; i++) {
+        if(predictors[scene] == undefined) {
+            predictors[scene] = {
+                tree: '',
+                trainingData: [],
+                train: function() {
+                    this.tree = new dt.RandomForest({
+                        trainingSet: this.trainingData,
+                        categoryAttr: target,
+                        ignoredAttributes: ["#", "Name"],
+                        maxTreeDepth: 10
+                    }, 1)
+                }
+            }
         }
 
+        predictors[scene].trainingData.push(data[i]);
+        predictors[scene].train();
+
+        var score = 0;
+
+        for (var b = predictors[scene].trainingData.length - 1; b >= 0; b--) {
+            if(
+                predictors[scene].trainingData[b][target].toString()
+                == predictors[scene].tree.predict(predictors[scene].trainingData[b])
+            ) {
+                score++;
+            }
+        }
+
+        if(score != predictors[scene].trainingData.length) {
+            console.log('scene '+scene+' : ' + score);
+            scene++;
+        }
     }
+
+    console.log('scene '+scene+' : ' + score);
 }
 
 var measureSize = function(name, decisionTreePayload) {
