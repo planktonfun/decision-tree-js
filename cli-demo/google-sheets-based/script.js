@@ -353,26 +353,24 @@ var start = function() {
 
     var id = 0;
     var stack = [];
-    var treeParse = function (tree) {
-      for(var i in tree) {
-        id++;
 
+    var treeParse = function (tree, id) {
+      for(var i in tree) {
         var output = {
           id: id,
           question: i,
-          yes: typeof(tree[i]['yes'])  == "object" ? treeParse(tree[i]['yes']) : tree[i]['yes'],
-          no: typeof(tree[i]['no']) == "object" ? treeParse(tree[i]['no']) : tree[i]['no']
+          yes: typeof(tree[i]['yes'])  == "object" ? treeParse(tree[i]['yes'], id+1) : tree[i]['yes'],
+          no: typeof(tree[i]['no']) == "object" ? treeParse(tree[i]['no'], id+1) : tree[i]['no']
         };
 
         // console.log(output);
 
         stack.push(output);
-
-        return 'goto id: ' + id;
       }
+      return 'goto id: ' + id;
     }
 
-    treeParse(tree);
+    treeParse(tree, 1);
 
     fs.writeFile(basepath + "stack.json", JSON.stringify(stack, null, 2), function(err) {
         if(err) {
