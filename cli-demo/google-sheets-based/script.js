@@ -351,4 +351,35 @@ var start = function() {
                  '</ul>'].join('');
     }
 
+    var id = 0;
+    var stack = [];
+    var treeParse = function (tree) {
+      for(var i in tree) {
+        id++;
+
+        var output = {
+          id: id,
+          question: i,
+          yes: typeof(tree[i]['yes'])  == "object" ? treeParse(tree[i]['yes']) : tree[i]['yes'],
+          no: typeof(tree[i]['no']) == "object" ? treeParse(tree[i]['no']) : tree[i]['no']
+        };
+
+        // console.log(output);
+
+        stack.push(output);
+
+        return 'goto id: ' + id;
+      }
+    }
+
+    treeParse(tree);
+
+    fs.writeFile(basepath + "stack.json", JSON.stringify(stack, null, 2), function(err) {
+        if(err) {
+            return console.log(err);
+        }
+
+        console.log("The file was saved!");
+    });
+
 }
